@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,10 +6,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Data Monitoring</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> <!-- Include Plotly -->
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #graphs { display: flex; justify-content: space-around; }
+        .graph-container { width: 30%; }
+        #bill { margin-top: 20px; }
+    </style>
 </head>
 <body>
     <h1>Live Data Monitoring</h1>
-    <div id="graph"></div>
+    <div id="graphs">
+        <div class="graph-container">
+            <h3>Voltage</h3>
+            <div id="voltageGraph"></div>
+        </div>
+        <div class="graph-container">
+            <h3>Current</h3>
+            <div id="currentGraph"></div>
+        </div>
+        <div class="graph-container">
+            <h3>Power</h3>
+            <div id="powerGraph"></div>
+        </div>
+    </div>
+    <div id="bill">
+        <h3>Estimated Monthly Bill: <span id="estimatedBill">$0.00</span></h3>
+    </div>
+
     <script>
         const SHEET_ID = '12d9Vq2-7P5UUe3N8vwSS90qEiuwUmuTmCLSSFHeqERY'; // Replace with your Google Sheet ID
         const API_KEY = 'AIzaSyCnv24eGsszQc6Y3UOUZXhIBWq15J6bqV4'; // Replace with your API key
@@ -24,31 +48,35 @@
             const current = rows.slice(1).map(row => parseFloat(row[2]));
             const power = rows.slice(1).map(row => parseFloat(row[3]));
 
-            const trace1 = {
-                x: time,
-                y: voltage,
-                mode: 'lines',
-                name: 'Voltage'
-            };
-            const trace2 = {
-                x: time,
-                y: current,
-                mode: 'lines',
-                name: 'Current'
-            };
-            const trace3 = {
-                x: time,
-                y: power,
-                mode: 'lines',
-                name: 'Power'
-            };
+            // Update graphs
+            plotGraph('voltageGraph', time, voltage, 'Voltage');
+            plotGraph('currentGraph', time, current, 'Current');
+            plotGraph('powerGraph', time, power, 'Power');
 
-            const dataToPlot = [trace1, trace2, trace3];
+            // Calculate and display estimated bill
+            calculateEstimatedBill(power);
+        }
 
-            Plotly.newPlot('graph', dataToPlot);
+        function plotGraph(graphId, xData, yData, name) {
+            const trace = {
+                x: xData,
+                y: yData,
+                mode: 'lines',
+                name: name
+            };
+            Plotly.newPlot(graphId, [trace]);
+        }
+
+        function calculateEstimatedBill(power) {
+            const costPerKWh = 0.12; // Cost per kilowatt-hour
+            const totalPower = power.reduce((total, value) => total + value, 0); // Total power in watts
+            const totalPowerKWh = (totalPower / 1000) * (30); // Total power in kWh for a month (30 days)
+            const estimatedBill = totalPowerKWh * costPerKWh;
+            document.getElementById('estimatedBill').innerText = `$${estimatedBill.toFixed(2)}`;
         }
 
         fetchData(); // Fetch and plot data
     </script>
 </body>
 </html>
+
