@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Data Monitoring</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> <!-- Include Plotly -->
+</head>
+<body>
+    <h1>Live Data Monitoring</h1>
+    <div id="graph"></div>
+    <script>
+        const SHEET_ID = '12d9Vq2-7P5UUe3N8vwSS90qEiuwUmuTmCLSSFHeqERY'; // Replace with your Google Sheet ID
+        const API_KEY = 'AIzaSyCnv24eGsszQc6Y3UOUZXhIBWq15J6bqV4'; // Replace with your API key
+
+        async function fetchData() {
+            const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet1?key=${API_KEY}`);
+            const data = await response.json();
+            const rows = data.values;
+
+            // Assuming your data has columns: Time, Voltage, Current, Power
+            const time = rows.slice(1).map(row => row[0]);
+            const voltage = rows.slice(1).map(row => parseFloat(row[1]));
+            const current = rows.slice(1).map(row => parseFloat(row[2]));
+            const power = rows.slice(1).map(row => parseFloat(row[3]));
+
+            const trace1 = {
+                x: time,
+                y: voltage,
+                mode: 'lines',
+                name: 'Voltage'
+            };
+            const trace2 = {
+                x: time,
+                y: current,
+                mode: 'lines',
+                name: 'Current'
+            };
+            const trace3 = {
+                x: time,
+                y: power,
+                mode: 'lines',
+                name: 'Power'
+            };
+
+            const dataToPlot = [trace1, trace2, trace3];
+
+            Plotly.newPlot('graph', dataToPlot);
+        }
+
+        fetchData(); // Fetch and plot data
+    </script>
+</body>
+</html>
